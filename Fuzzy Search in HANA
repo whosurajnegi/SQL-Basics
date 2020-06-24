@@ -1,0 +1,60 @@
+Fuzzy search is the technique of finding strings that match a pattern approximately (rather than exactly).
+With the help of Fuzzy Search Misspellings and typos still provide relevant results.
+The fuzzy search algorithm calculate the score for each comparison, 1 being the highest and 0 being no match.
+Create table and some data: 
+-- REPLACE <Schema_Name> WITH YOUR SCHEMA NAME 
+create column table <Schema_Name>."CUSTOMERS"( 
+                "CUSTOMER_ID" VARCHAR (5) not null default '', 
+                "FIRST_NAME" VARCHAR (20) null default '', 
+                "LAST_NAME" VARCHAR (20) null default '', 
+                "STREET" VARCHAR (20) null default '', 
+                "CITY" VARCHAR (20) null default '', 
+                "COUNTRY" VARCHAR (20) null default '', 
+                "POSTAL_CODE" VARCHAR (20) null default '', 
+                primary key ("CUSTOMER_ID")); 
+
+insert into <Schema_Name>."CUSTOMERS" values('00001','Jimi','Hendricks','Berliner Platz 43','Munchen','Germany','80805'); 
+insert into <Schema_Name>."CUSTOMERS" values('00002','Jimy','Hendricks','Berlinr Platz 43','Munchen','Germany','80805'); 
+insert into <Schema_Name>."CUSTOMERS" values('00003','Jimi','Hendrix','Berliner Plats 43','Munchen','Germany','80805'); 
+insert into <Schema_Name>."CUSTOMERS" values('00004','Jimy','Feuer','Berliner','Munchen','Germany','80805'); 
+insert into <Schema_Name>."CUSTOMERS" values('00006','Sven','Ottlieb','Walserweg 21','Aachen','Germany','52066'); 
+insert into <Schema_Name>."CUSTOMERS" values('00007','Philip','Cramer','Maubelstr. 90','Brandenburg','Germany','14776'); 
+insert into <Schema_Name>."CUSTOMERS" values('00008','Renate','Messner','Magazinweg 7','Frankfurt','Germany','60528'); 
+insert into <Schema_Name>."CUSTOMERS" values('00009','Alexander','Feuer','Heerstr. 22','Leipzig','Germany','04179'); 
+insert into <Schema_Name>."CUSTOMERS" values('00010','Antonio','Moreno','Mataderos 2312','Mexico','Mexico','05023'); 
+insert into <Schema_Name>."CUSTOMERS" values('00011','Thomas','Hardy','120 Hanover','London','UK','WA1 1DP'); 
+insert into <Schema_Name>."CUSTOMERS" values('00012','Christina','Berglund','Berguvsvagen 8','Lulea','Sweden','S-958 22');
+
+Without Fuzzy Search: 
+Suppose you want to search a customer with name "Jimi".
+SQL Query:
+SELECT * FROM <Schema_Name>."CUSTOMERS" 
+                WHERE CONTAINS(FIRST_NAME, 'Jimi') 
+                ORDER BY "CUSTOMER_ID" DESC;
+
+The output will contain only one entry which contains exact match of "Jimi". 
+
+
+
+Now let us try the fuzzy search function. 
+SQL Query: 
+
+SELECT SCORE() AS score, * FROM <Schema_Name>."CUSTOMERS" 
+                WHERE 
+               CONTAINS(FIRST_NAME, 'Jimi', FUZZY(0.7)) 
+               ORDER BY score DESC;
+
+The output of fuzzy search contains 4 entries. Based on the fuzzy search factor (which is 0.7 in this case), it will also consider the similar words. In this case "Jimy". 
+
+
+
+We can also do fuzzy search on 2 columns. For example First Name and Last Name. 
+SQL Query: 
+SELECT SCORE() AS score, * FROM <Schema_Name>."CUSTOMERS" 
+                WHERE 
+                          CONTAINS(FIRST_NAME, 'Jimi', FUZZY(0.7)) 
+                          and CONTAINS(LAST_NAME, 'Hendricks', FUZZY(0.7)) 
+                ORDER BY score DESC;
+
+The output contains 3 entries. Based on the fuzzy search factor (which is 0.7 in this case), it will also consider the similar names. In this case "Jimy Hendricks" and "Jimi Hendrix". 
+
